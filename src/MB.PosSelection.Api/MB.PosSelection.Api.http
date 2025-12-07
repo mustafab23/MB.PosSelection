@@ -1,0 +1,54 @@
+@HostAddress = http://localhost:5000
+
+# --------------------------------------------------------
+# 1. READINESS PROBE (Sistem Hazýr mý?)
+# DB ve Redis baðlantýlarýný kontrol eder.
+# --------------------------------------------------------
+GET {{HostAddress}}/health/ready
+Accept: application/json
+
+###
+
+# --------------------------------------------------------
+# 2. MANUEL SENKRONÝZASYON (Admin Trigger)
+# Dýþ API'den verileri çeker ve DB/Cache'i günceller.
+# --------------------------------------------------------
+POST {{HostAddress}}/api/v1/pos/sync-rates
+Accept: application/json
+
+###
+
+# --------------------------------------------------------
+# 3. EN UYGUN POS SEÇÝMÝ (Senaryo 1)
+# 362.22 TL, 6 Taksit, TRY, Kredi Kartý
+# Beklenen: KuveytTurk (veya en düþük oranlý banka)
+# --------------------------------------------------------
+POST {{HostAddress}}/api/v1/pos/select-best
+Content-Type: application/json
+Accept: application/json
+
+{
+  "amount": 362.22,
+  "installment": 6,
+  "currency": "TRY",
+  "card_type": "Credit"
+}
+
+###
+
+# --------------------------------------------------------
+# 4. EN UYGUN POS SEÇÝMÝ (Senaryo 2 - USD & Bonus)
+# 395 USD, 3 Taksit, Bonus Kart
+# Beklenen: Denizbank (Bonus özelliði olanlar arasýnda en iyisi)
+# --------------------------------------------------------
+POST {{HostAddress}}/api/v1/pos/select-best
+Content-Type: application/json
+Accept: application/json
+
+{
+  "amount": 395.00,
+  "installment": 3,
+  "currency": "USD",
+  "card_type": "Credit",
+  "card_brand": "bonus"
+}

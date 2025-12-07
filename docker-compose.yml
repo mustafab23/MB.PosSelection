@@ -1,0 +1,112 @@
+services:
+  # 1. Veritabanı (PostgreSQL)
+  postgres:
+    image: postgres:15-alpine
+    container_name: mb_pos_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pos_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Cache (Redis)
+  redis:
+    image: redis:alpine
+    container_name: mb_pos_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. Observability - OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: mb_pos_otel_collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317" # API buraya gRPC ile data basacak
+      - "4318:4318" # HTTP alternatifi
+      - "8889:8889" # Prometheus buradan metric çekecek
+      - "13133:13133" # Dışarıdan healthcheck durumunu görmek için eklendi
+    # --- Healthcheck ---
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:13133/"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # ----------------------------------------
+
+  # 4. Observability - Prometheus (Metrics Database)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mb_pos_prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+
+  # 5. Observability - Jaeger (Tracing UI)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: mb_pos_jaeger
+    ports:
+      - "16686:16686"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  # 6. Observability - Grafana (Dashboarding)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mb_pos_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+  # 7. API
+  api:
+    build:
+      context: .
+      dockerfile: src/MB.PosSelection.Api/Dockerfile
+    container_name: mb_pos_api
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=pos_db;Username=postgres;Password=postgres"
+      ConnectionStrings__Redis: "redis:6379"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+      OTEL_SERVICE_NAME: "MB.PosSelection.Api"
+    ports:
+      - "5000:8080"
+
+volumes:
+  postgres_data:

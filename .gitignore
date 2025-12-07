@@ -1,0 +1,105 @@
+# -----------------------------------
+# OS FILES (Windows, Mac, Linux)
+# -----------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+*~
+
+# -----------------------------------
+# IDE & TOOLS (VS, Code, Rider)
+# -----------------------------------
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# -----------------------------------
+# DOTNET BUILD ARTIFACTS
+# -----------------------------------
+[Bb]in/
+[Oo]bj/
+out/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.dll
+*.exe
+*.pdb
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# -----------------------------------
+# TEST & BENCHMARK RESULTS (EKLENDI)
+# -----------------------------------
+[Tt]est[Rr]esult*/
+TestResult.xml
+nunit-*.xml
+BenchmarkDotNet.Artifacts/
+*.VisualState.xml
+
+# -----------------------------------
+# WEB / ASP.NET
+# -----------------------------------
+wwwroot/lib/
+wwwroot/node_modules/
+*.log
+
+# -----------------------------------
+# NUGET
+# -----------------------------------
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.assets.json
+project.nuget.cache
+
+# -----------------------------------
+# DOCKER
+# -----------------------------------
+docker-compose.override.yml
+*.pid
+*.tar
+*.img
+
+# -----------------------------------
+# SECRETS / CONFIG
+# -----------------------------------
+# Production secrets should never be in git
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+.env
+
+# -----------------------------------
+# QUARTZ & LOGS
+# -----------------------------------
+quartz-*.xml
+logs/
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# -----------------------------------
+# EXTRAS (Terraform, Python etc.)
+# -----------------------------------
+.terraform/
+*.tfstate
+*.tfstate.backup
+venv/
+__pycache__/
