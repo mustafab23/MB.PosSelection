@@ -49,7 +49,9 @@ graph TD
         Worker -->|Update| Redis
     end
 
-Kritik Teknik Kararlar (Trade-offs)
+```
+
+### Kritik Teknik Kararlar (Trade-offs)
 
 Aşağıdaki kararlar, "Best Practices" ve projenin doğası (Calculation Engine) göz önüne alınarak verilmiştir:
 1. Neden Hybrid Caching (FusionCache)? ⚡
